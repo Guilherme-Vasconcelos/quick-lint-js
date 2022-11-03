@@ -57,6 +57,7 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
   bool was_in_generator_function = this->in_generator_function_;
   bool was_in_loop_statement = this->in_loop_statement_;
   bool was_in_switch_statement = this->in_switch_statement_;
+  bool was_in_constructor = this->in_constructor_;
   switch (attributes) {
   case function_attributes::async:
     this->in_async_function_ = true;
@@ -78,9 +79,19 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
   this->in_top_level_ = false;
   this->in_loop_statement_ = false;
   this->in_switch_statement_ = false;
+  // If we were in a constructor, we have two possible cases:
+  // 1. We are still in the constructor, since a constructor is a function itself.
+  // 2. We entered a nested non-constructor function, so we are not in a constructor anymore.
+
+  // FIXME: This doesn't work. A nested function is still `in_class_`.
+  // I think I found a solution: Right after setting `in_constructor_`, I could have some other variable to hold
+  // "how nested we are". So the next function right after the constructor will still be `in_constructor`.
+  // Or, even better, instead of having `in_constructor_` as a boolean, we could have something like
+  // `in_constructor_depth`.
+  this->in_constructor_ = this->in_class_ && was_in_constructor;
   return function_guard(this, was_in_top_level, was_in_async_function,
                         was_in_generator_function, was_in_loop_statement,
-                        was_in_switch_statement);
+                        was_in_switch_statement, was_in_constructor);
 }
 
 parser::loop_guard parser::enter_loop() {
@@ -756,13 +767,15 @@ parser::function_guard::function_guard(parser* p, bool was_in_top_level,
                                        bool was_in_async_function,
                                        bool was_in_generator_function,
                                        bool was_in_loop_statement,
-                                       bool was_in_switch_statement) noexcept
+                                       bool was_in_switch_statement,
+                                       bool was_in_constructor) noexcept
     : parser_(p),
       was_in_top_level_(was_in_top_level),
       was_in_async_function_(was_in_async_function),
       was_in_generator_function_(was_in_generator_function),
       was_in_loop_statement_(was_in_loop_statement),
-      was_in_switch_statement_(was_in_switch_statement) {}
+      was_in_switch_statement_(was_in_switch_statement),
+      was_in_constructor_(was_in_constructor) {}
 
 parser::function_guard::~function_guard() noexcept {
   this->parser_->in_top_level_ = this->was_in_top_level_;
@@ -770,6 +783,7 @@ parser::function_guard::~function_guard() noexcept {
   this->parser_->in_generator_function_ = this->was_in_generator_function_;
   this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
   this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
+  this->parser_->in_constructor_ = this->was_in_constructor_;
 }
 
 parser::depth_guard::depth_guard(parser* p) noexcept

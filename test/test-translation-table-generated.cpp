@@ -374,6 +374,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "'this' parameters are not allowed in constructors"_translatable,
+        {
+            u8"'this' parameters are not allowed in constructors",
+            u8"'this' parameters are not allowed in constructors",
+            u8"'this' parameters are not allowed in constructors",
+            u8"'this' parameters are not allowed in constructors",
+            u8"'this' parameters are not allowed in constructors",
+            u8"'this' parameters are not allowed in constructors",
+        },
+    },
+    {
         "'type' cannot be used twice in export"_translatable,
         {
             u8"'type' cannot be used twice in export",
@@ -2153,17 +2164,6 @@ const translated_string test_translation_table[] = {
             u8"imported variable declared here",
             u8"vari\u00e1vel importada declarada aqui",
             u8"imported variable declared here",
-        },
-    },
-    {
-        "in TypeScript, 'this' keyword is not allowed in constructors"_translatable,
-        {
-            u8"in TypeScript, 'this' keyword is not allowed in constructors",
-            u8"in TypeScript, 'this' keyword is not allowed in constructors",
-            u8"in TypeScript, 'this' keyword is not allowed in constructors",
-            u8"in TypeScript, 'this' keyword is not allowed in constructors",
-            u8"in TypeScript, 'this' keyword is not allowed in constructors",
-            u8"in TypeScript, 'this' keyword is not allowed in constructors",
         },
     },
     {

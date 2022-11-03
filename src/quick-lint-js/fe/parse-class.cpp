@@ -403,16 +403,16 @@ void parser::parse_and_visit_class_or_interface_member(
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier:
       case token_type::reserved_keyword_with_escape_sequence: {
-        auto parse_and_visit = [this](auto p) {
+        auto parse_and_visit = [this]() {
           identifier property_name = p->peek().identifier_name();
           p->skip();
           parse_and_visit_field_or_method(property_name);
         };
         if (p->peek().type == token_type::kw_constructor) {
           constructor_guard g = p->enter_constructor();
-          parse_and_visit(p);
+          parse_and_visit();
         } else {
-          parse_and_visit(p);
+          parse_and_visit();
         }
         break;
       }

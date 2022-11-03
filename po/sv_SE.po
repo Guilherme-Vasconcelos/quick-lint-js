@@ -1699,7 +1699,7 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "in TypeScript, 'this' keyword is not allowed in constructors"
+msgid "'this' parameters are not allowed in constructors"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp

@@ -350,7 +350,7 @@ TEST_F(test_parse_typescript_this_parameters,
         p.errors,
         ElementsAre(DIAG_TYPE(diag_this_parameter_not_allowed_in_javascript)))
         << "should not also report "
-           "diag_this_parameter_not_allowed_in_typescript_constructor";
+           "diag_this_parameter_not_allowed_in_constructors";
   }
 
   {
@@ -359,7 +359,7 @@ TEST_F(test_parse_typescript_this_parameters,
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE(
-                    diag_this_parameter_not_allowed_in_typescript_constructor)))
+                    diag_this_parameter_not_allowed_in_constructors)))
         << "should not also report diag_this_parameter_must_be_first";
   }
 
@@ -369,7 +369,7 @@ TEST_F(test_parse_typescript_this_parameters,
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE(
-                    diag_this_parameter_not_allowed_in_typescript_constructor)))
+                    diag_this_parameter_not_allowed_in_constructors)))
         << "should not also report diag_this_parameter_must_be_first";
   }
 }

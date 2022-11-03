@@ -1509,6 +1509,8 @@ void parser::parse_and_visit_function_parameters_and_body(
 void parser::parse_and_visit_function_parameters_and_body_no_scope(
     parse_visitor_base &v, std::optional<source_code_span> name,
     function_attributes attributes) {
+  // FIXME: This guard clause will set `is_constructor_` to `false` even if it's an actual constructor, because
+  // the actual constructor is a function too.
   function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
       this->parse_and_visit_function_parameters(v, name);
@@ -4321,7 +4323,7 @@ void parser::visit_binding_element(expression *ast, parse_visitor_base &v,
     source_code_span this_span = ast->span();
     if (this->in_constructor_ && this->options_.typescript) {
       this->diag_reporter_->report(
-          diag_this_parameter_not_allowed_in_typescript_constructor{
+          diag_this_parameter_not_allowed_in_constructors{
               .this_keyword = this_span});
     } else if (info.declaration_kind == variable_kind::_arrow_parameter &&
                this->options_.typescript) {

@@ -716,7 +716,8 @@ class parser {
                             bool was_in_async_function,
                             bool was_in_generator_function,
                             bool was_in_loop_statement,
-                            bool was_in_switch_statement) noexcept;
+                            bool was_in_switch_statement,
+                            bool was_in_constructor) noexcept;
 
     function_guard(const function_guard &) = delete;
     function_guard &operator=(const function_guard &) = delete;
@@ -730,6 +731,7 @@ class parser {
     bool was_in_generator_function_;
     bool was_in_loop_statement_;
     bool was_in_switch_statement_;
+    bool was_in_constructor_;
   };
 
  private:

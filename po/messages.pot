@@ -1572,7 +1572,7 @@ msgid "using '{0}' against a regular expression literal always returns '{1}'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "in TypeScript, 'this' keyword is not allowed in constructors"
+msgid "'this' parameters are not allowed in constructors"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp

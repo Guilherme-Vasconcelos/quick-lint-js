@@ -1624,8 +1624,8 @@ msgstr "usar '{0}' com uma expressão regular sempre retorna '{1}'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "in TypeScript, 'this' keyword is not allowed in constructors"
-msgstr "em TypeScript, a palavra-chave 'this' não é permitida em construtores"
+msgid "'this' parameters are not allowed in constructors"
+msgstr "parâmetro 'this' não é permitido em construtores"
 
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
