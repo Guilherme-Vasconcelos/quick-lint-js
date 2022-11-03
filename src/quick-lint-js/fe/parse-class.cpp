@@ -409,7 +409,7 @@ void parser::parse_and_visit_class_or_interface_member(
           parse_and_visit_field_or_method(property_name);
         };
         if (p->peek().type == token_type::kw_constructor) {
-          constructor_guard g = p->enter_constructor();
+          constructor_guard guard(p);
           parse_and_visit();
         } else {
           parse_and_visit();
@@ -1192,8 +1192,9 @@ void parser::parse_and_visit_typescript_interface(
   case token_type::kw_asserts:
   case token_type::kw_async:
   case token_type::kw_constructor: {
-    constructor_guard g = this->enter_constructor();
-    [[fallthrough]];
+    // FIXME
+    //constructor_guard g = this->enter_constructor();
+    //[[fallthrough]];
   }
   case token_type::kw_declare:
   case token_type::kw_from:

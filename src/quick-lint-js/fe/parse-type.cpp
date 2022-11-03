@@ -102,8 +102,9 @@ again:
   case token_type::kw_asserts:
   case token_type::kw_async:
   case token_type::kw_constructor: {
-    constructor_guard g = this->enter_constructor();
-    [[fallthrough]];
+    // FIXME
+    //constructor_guard g = this->enter_constructor();
+    //[[fallthrough]];
   }
   case token_type::kw_declare:
   case token_type::kw_from:
@@ -173,8 +174,8 @@ again:
 
   // new (param, param) => ReturnType
   case token_type::kw_new: {
+    constructor_guard guard(this);
     this->skip();
-    constructor_guard g = this->enter_constructor();
     this->parse_and_visit_typescript_arrow_type_expression(v);
     break;
   }
@@ -222,8 +223,9 @@ again:
     case token_type::kw_class:
     case token_type::kw_const:
     case token_type::kw_constructor: {
-      constructor_guard g = this->enter_constructor();
-      [[fallthrough]];
+      // FIXME
+      //constructor_guard g = this->enter_constructor();
+      //[[fallthrough]];
     }
     case token_type::kw_continue:
     case token_type::kw_debugger:

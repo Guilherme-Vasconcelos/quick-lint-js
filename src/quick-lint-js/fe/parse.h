@@ -90,6 +90,7 @@ class parser {
  public:
   class depth_guard;
   class function_guard;
+  class constructor_guard;
 
   explicit parser(padded_string_view input, diag_reporter *diag_reporter,
                   parser_options options);
@@ -709,6 +710,17 @@ class parser {
         std::forward<Args>(args)...);
   }
 
+ private:
+  enum class in_constructor_status {
+    not_in_constructor,
+    // We have found the `constructor` keyword, but `function_guard` has not run yet.
+    found_kw,
+    // We have found the `constructor` keyword and have already run the `function_guard`.
+    // If you enter a new function and this is `in_constructor_`'s value, you will know you
+    // are entering a nested function within the constructor.
+    in_constructor,
+  };
+
  public:
   class function_guard {
    public:
@@ -716,8 +728,7 @@ class parser {
                             bool was_in_async_function,
                             bool was_in_generator_function,
                             bool was_in_loop_statement,
-                            bool was_in_switch_statement,
-                            bool was_in_constructor) noexcept;
+                            bool was_in_switch_statement) noexcept;
 
     function_guard(const function_guard &) = delete;
     function_guard &operator=(const function_guard &) = delete;
@@ -731,7 +742,6 @@ class parser {
     bool was_in_generator_function_;
     bool was_in_loop_statement_;
     bool was_in_switch_statement_;
-    bool was_in_constructor_;
   };
 
  private:
@@ -749,6 +759,21 @@ class parser {
    private:
     parser *parser_;
     bool old_value_;
+  };
+
+ public:
+  class constructor_guard {
+    public:
+     explicit constructor_guard(parser *p) noexcept;
+
+      constructor_guard(const constructor_guard &) = delete;
+      constructor_guard &operator=(const constructor_guard &) = delete;
+
+      ~constructor_guard() noexcept;
+
+    private:
+     parser *parser_;
+     in_constructor_status old_value_;
   };
 
  public:
@@ -813,7 +838,6 @@ class parser {
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
   bool in_class_ = false;
-  bool in_constructor_ = false;
 
   bool in_typescript_only_construct_ = false;
 
@@ -847,12 +871,13 @@ class parser {
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
   using class_guard = bool_guard<&parser::in_class_>;
-  using constructor_guard = bool_guard<&parser::in_constructor_>;
 
   using typescript_only_construct_guard =
       bool_guard<&parser::in_typescript_only_construct_>;
 
   int depth_ = 0;
+
+  in_constructor_status in_constructor_status_ = in_constructor_status::not_in_constructor;
 
   // TODO(#735): Reduce stack usage in our parse functions and increase this
   // limit.
@@ -861,7 +886,6 @@ class parser {
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
   [[nodiscard]] class_guard enter_class();
-  [[nodiscard]] constructor_guard enter_constructor();
 
  private:
   [[nodiscard]] typescript_only_construct_guard

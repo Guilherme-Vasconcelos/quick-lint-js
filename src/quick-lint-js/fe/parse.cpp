@@ -57,7 +57,7 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
   bool was_in_generator_function = this->in_generator_function_;
   bool was_in_loop_statement = this->in_loop_statement_;
   bool was_in_switch_statement = this->in_switch_statement_;
-  bool was_in_constructor = this->in_constructor_;
+  in_constructor_status previous_constructor_status = this->in_constructor_status_;
   switch (attributes) {
   case function_attributes::async:
     this->in_async_function_ = true;
@@ -79,19 +79,20 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
   this->in_top_level_ = false;
   this->in_loop_statement_ = false;
   this->in_switch_statement_ = false;
-  // If we were in a constructor, we have two possible cases:
-  // 1. We are still in the constructor, since a constructor is a function itself.
-  // 2. We entered a nested non-constructor function, so we are not in a constructor anymore.
-
-  // FIXME: This doesn't work. A nested function is still `in_class_`.
-  // I think I found a solution: Right after setting `in_constructor_`, I could have some other variable to hold
-  // "how nested we are". So the next function right after the constructor will still be `in_constructor`.
-  // Or, even better, instead of having `in_constructor_` as a boolean, we could have something like
-  // `in_constructor_depth`.
-  this->in_constructor_ = this->in_class_ && was_in_constructor;
+  switch (previous_constructor_status) {
+    case in_constructor_status::not_in_constructor:
+      break;
+    case in_constructor_status::found_kw:
+      this->in_constructor_status_ = in_constructor_status::in_constructor;
+      break;
+    case in_constructor_status::in_constructor:
+      // Nested function.
+      this->in_constructor_status_ = in_constructor_status::not_in_constructor;
+      break;
+  };
   return function_guard(this, was_in_top_level, was_in_async_function,
                         was_in_generator_function, was_in_loop_statement,
-                        was_in_switch_statement, was_in_constructor);
+                        was_in_switch_statement);
 }
 
 parser::loop_guard parser::enter_loop() {
@@ -100,10 +101,6 @@ parser::loop_guard parser::enter_loop() {
 
 parser::class_guard parser::enter_class() {
   return class_guard(this, std::exchange(this->in_class_, true));
-}
-
-parser::constructor_guard parser::enter_constructor() {
-  return constructor_guard(this, std::exchange(this->in_constructor_, true));
 }
 
 parser::typescript_only_construct_guard
@@ -767,15 +764,12 @@ parser::function_guard::function_guard(parser* p, bool was_in_top_level,
                                        bool was_in_async_function,
                                        bool was_in_generator_function,
                                        bool was_in_loop_statement,
-                                       bool was_in_switch_statement,
-                                       bool was_in_constructor) noexcept
+                                       bool was_in_switch_statement) noexcept
     : parser_(p),
       was_in_top_level_(was_in_top_level),
       was_in_async_function_(was_in_async_function),
       was_in_generator_function_(was_in_generator_function),
-      was_in_loop_statement_(was_in_loop_statement),
-      was_in_switch_statement_(was_in_switch_statement),
-      was_in_constructor_(was_in_constructor) {}
+      was_in_loop_statement_(was_in_loop_statement) {}
 
 parser::function_guard::~function_guard() noexcept {
   this->parser_->in_top_level_ = this->was_in_top_level_;
@@ -783,7 +777,6 @@ parser::function_guard::~function_guard() noexcept {
   this->parser_->in_generator_function_ = this->was_in_generator_function_;
   this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
   this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
-  this->parser_->in_constructor_ = this->was_in_constructor_;
 }
 
 parser::depth_guard::depth_guard(parser* p) noexcept
@@ -798,6 +791,19 @@ parser::depth_guard::~depth_guard() noexcept {
   QLJS_ASSERT(this->parser_->depth_ == this->old_depth_ + 1);
   this->parser_->depth_ = this->old_depth_;
 }
+
+parser::constructor_guard::~constructor_guard() noexcept {
+  this->parser_->in_constructor_status_ = this->old_value_;
+}
+
+parser::constructor_guard::constructor_guard(parser* p) noexcept
+    : parser_(p), old_value_(p->in_constructor_status_) {
+  // TODO: We probably need the old_value to be stored in function_guard too, to make sure we can recover it
+  // even with very nested functions.
+  QLJS_ASSERT(this->parser_->peek().type == token_type::kw_constructor || this->parser_->peek().type == token_type::kw_new);
+  this->parser_->in_constructor_status_ = in_constructor_status::found_kw;
+}
+
 
 bool parser::parse_expression_cache_key::operator==(
     const parser::parse_expression_cache_key& rhs) const noexcept {
